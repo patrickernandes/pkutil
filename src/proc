@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# AUTOR: PK Ernandes
+# EMAIL: suporte@ernandes.info
+#
+#
+
+
+set -e
+if [ "$1" = "?" ] || [ "$1" = "help" ]; then
+  echo "\n show system process.\n"
+else
+  ps -e -o s,tty,user,pid,ppid,ni,pri,%cpu,rss,%mem,cmd
+fi
+
+
+# vim:set ts=2 sts=2 sw=2 et ft=sh:

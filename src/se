@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# AUTOR: PK Ernandes
+# EMAIL: suporte@ernandes.info
+#
+#
+
+
+set -e
+if [ "$1" = "?" ] || [ "$1" = "help" ]; then
+  echo "\n search packages.\n"
+else
+  if test -f "/etc/os-release"; then
+    . /etc/os-release
+    if [ ${ID} = "debian" ] || [ ${ID} = "ubuntu"]; then
+      apt=$(which apt)
+      ${apt} search $@
+    fi
+  else
+    echo "\n error - file '/etc/os-release'!"
+  fi
+fi
+
+
+# vim:set ts=2 sts=2 sw=2 et ft=sh:

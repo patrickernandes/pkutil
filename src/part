@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+# AUTOR: PK Ernandes
+# EMAIL: suporte@ernandes.info
+#
+#
+
+
+set -e
+if [ "$1" = "?" ] || [ "$1" = "help" ]; then
+  echo "\n show disk partitions.\n"
+else
+  set --
+  partitions=$(ls /sys/class/block/ | grep -E 'hd[a-z][1-9]|sd[a-z][1-9]|nvme[a-z][1-9]|fd[0-9]' | sed 's/@//') 
+  for partition in ${partitions}; do
+    size=$(blockdev --getsize64 /dev/"${partition}" | numfmt --to=iec --format='%.2f')
+    type=$(lsblk -n -a -f -l -o FSTYPE /dev/"${partition}")
+    uuid=$(lsblk -n -a -f -l -o UUID /dev/"${partition}")
+    out="/dev/${partition};${size};${type};${uuid}"
+    set -- $@ $out
+  done
+
+  echo
+  printf "%s\n" "---------;----;----;----" "${@}" | column -t -s';' --table-columns 'partition,size,type,uuid'; echo
+fi
+
+
+# vim:set ts=2 sts=2 sw=2 et ft=sh:

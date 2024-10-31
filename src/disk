@@ -1,0 +1,26 @@
+#!/bin/sh
+#
+# AUTOR: PK Ernandes
+# EMAIL: suporte@ernandes.info
+#
+#
+
+
+set -e
+if [ "$1" = "?" ] || [ "$1" = "help" ]; then
+  echo "\n show disk size.\n"
+else
+  set --
+  disks=$(ls /sys/class/block/ | grep -v -E 'hd[a-z][1-9]|sd[a-z][1-9]|nvme[a-z][1-9]|dm-[0-9]|loop[0-9]|sr[0-9]|fd[0-9]|ram[0-9]' | sed 's/@//')
+  for disk in ${disks}; do
+    size=$(blockdev --getsize64 /dev/"${disk}" | numfmt --to=iec --format='%.2f')
+    out="/dev/${disk};${size}"
+    set -- $@ $out
+  done
+
+  echo
+  printf "%s\n" "----;----" "${@}" | column -t -s';' --table-columns 'disk,size'; echo
+fi
+
+
+# vim:set ts=2 sts=2 sw=2 et ft=sh:

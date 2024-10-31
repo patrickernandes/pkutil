@@ -1,0 +1,43 @@
+#!/bin/sh
+#
+# AUTOR: PK Ernandes
+# EMAIL: suporte@ernandes.info
+#
+#
+
+
+set -e
+if [ "$1" = "?" ] || [ "$1" = "help" ]; then
+  echo "\n show network interfaces.\n"
+else
+  set --
+  #interfaces=$(ls -1 /sys/class/net | grep -v -E 'lo' | sed 's/@//')
+  #interfaces=$(ip link show | grep -E '^[0-9]+:' | cut -d ':' -f 2 | sed 's|^[[:space:]]*||')
+  interfaces=$(cat /proc/net/dev | grep : | cut -d":" -f1 | sed 's|^[[:space:]]*||')
+  for interface in ${interfaces}; do
+    index=$(head -n1 /sys/class/net/${interface}/ifindex)
+    state=$(head -n1 /sys/class/net/${interface}/operstate)
+    address=$(head -n1 /sys/class/net/${interface}/address)
+    mtu=$(head -n1 /sys/class/net/${interface}/mtu)
+    rx_byte=$(head -n1 /sys/class/net/${interface}/statistics/rx_bytes | numfmt --to=iec --format='%.2f')
+    tx_byte=$(head -n1 /sys/class/net/${interface}/statistics/tx_bytes | numfmt --to=iec --format='%.2f')
+    if [ "$state" = "up" ]; then 
+      speed=$(head -n1 /sys/class/net/${interface}/speed)
+    else
+      speed=''
+    fi
+    if test -d "/sys/class/net/${interface}/device"; then
+      driver=$(grep "DRIVER" /sys/class/net/${interface}/device/uevent | cut -d'=' -f2)
+    else
+      driver=$(udevadm info /sys/class/net/${interface} | grep "NET_DRIVER" | cut -d'=' -f2)
+    fi
+    out="${index};${interface};${state};${address};${mtu};${speed};${driver};${rx_byte};${tx_byte}"
+    set -- $@ $out
+  done
+
+  echo
+  printf "%s\n" "-----;---------;-----;-----------;---;-----;------;--------;--------" "${@}" | column -t -s';' --table-columns 'index,interface,state,mac address,mtu,speed,driver,rx_bytes,tx_bytes'; echo
+fi
+
+
+# vim:set ts=2 sts=2 sw=2 et ft=sh:
